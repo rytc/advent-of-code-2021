@@ -37,11 +37,11 @@ count_newlines(File file) {
 }
 
 static u32
-next_newline(File file) {
+find_next(File file, char c) {
     u32 tempCursor = file.cursor + 1;
 
     while(tempCursor < file.length) {
-        if(file.data[tempCursor] == '\n') {
+        if(file.data[tempCursor] == c) {
             return tempCursor; 
         }
         tempCursor += 1;
@@ -52,7 +52,7 @@ next_newline(File file) {
 
 static s32
 readline_s32(File *file) {
-    u32 lineEnd = next_newline(*file);
+    u32 lineEnd = find_next(*file, '\n');
     char line[128];
     memcpy(line, &file->data[file->cursor], lineEnd - file->cursor);
     s32 result = atoi(line);
