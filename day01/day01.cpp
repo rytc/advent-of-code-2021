@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
     u32 sonarScanCount = count_newlines(input);
     s32 *elevationArray = (s32*)malloc(sonarScanCount * sizeof(s32));
 
-    for(s32 i = 0; i < sonarScanCount; i++) {
+    for(u32 i = 0; i < sonarScanCount; i++) {
         elevationArray[i] = readline_s32(&input);
     }
 
