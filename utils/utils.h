@@ -60,6 +60,13 @@ readline_s32(File *file) {
     return result; 
 }
 
+static void
+readline_string_len(File *file, char* out, u32 len) {
+    u32 lineEnd = find_next(*file, '\n');
+    memcpy(out, &file->data[file->cursor], len);
+    file->cursor = lineEnd + 1;
+}
+
 #if OS_LINUX
 #include <fcntl.h>
 #include <sys/stat.h>
