@@ -43,10 +43,8 @@ get_final_position_with_aim(Movement *movements, u32 movementCount) {
     for(u32 i = 0; i < movementCount; i++) {
         Movement m = movements[i];
         if(m.dir == Up) {
-            //result.depth -= m.distance;
             aim -= m.distance;
         } else if(m.dir == Down) {
-            //result.depth += m.distance;
             aim += m.distance;
         } else if(m.dir == Forward) {
             result.horizontal += m.distance;
@@ -94,6 +92,7 @@ int main(int argc, char** argv) {
     printf("Hor: %i Depth: %i\n", finalPos.horizontal, finalPos.depth);
     printf("With AIM: Hor: %i Depth %i\n", finalPosWithAim.horizontal, finalPosWithAim.depth);
 
+    free(movements);
     free_file(input);
 
     return 0;
