@@ -31,11 +31,11 @@ check_win(Game_Board board) {
     // check rows
     for(u32 r = 0; r < 5; r++) {
         u32 rowIndex = r * 5;
-        if(board.slots[r].marked &&
-            board.slots[r+1].marked &&
-            board.slots[r+2].marked &&
-            board.slots[r+3].marked &&
-            board.slots[r+4].marked) {
+        if(board.slots[rowIndex].marked &&
+            board.slots[rowIndex+1].marked &&
+            board.slots[rowIndex+2].marked &&
+            board.slots[rowIndex+3].marked &&
+            board.slots[rowIndex+4].marked) {
                 return true;
         }
     }
@@ -135,6 +135,7 @@ int main(int argc, char** argv) {
 
     printf("Total number of boards: %i\n", boardCount);
 
+    // First find the first winner
     for(u32 i = 0; i < drawableNumberCount; i++) {
         mark_boards(boards, boardCount, drawableNumbers[i]);
         // Can only win after 5 numbers
@@ -155,13 +156,15 @@ int main(int argc, char** argv) {
         }
     }
 
-    
+    // find the last winner
     u32 lastScore = 0;
     Game_Board *lastToWin = nullptr;
     for(u32 i = 0; i < drawableNumberCount; i++) {
         u32 winCount = 0;
+        // Mark every board
         mark_boards(boards, boardCount, drawableNumbers[i]);
 
+        // Check every board if they won
         for(u32 boardIndex = 0; boardIndex < boardCount; boardIndex++) {
             Game_Board *board = &boards[boardIndex];
             b32 won = check_win(*board);
@@ -169,7 +172,8 @@ int main(int argc, char** argv) {
                 winCount += 1;
             }
 
-            if(winCount == boardCount-2) {
+            // if all the boards won except the last one
+            if(winCount == boardCount-1) {
                 for(u32 k = 0; k < boardCount; k++) {
                     if(!check_win(boards[k])) {
                         lastToWin = &boards[k];
@@ -189,7 +193,9 @@ int main(int argc, char** argv) {
                 printf("Last board won with %i\n", drawableNumbers[i]);
 
                 for(u32 c = 0; c < 25; c++) {
-                    if(lastToWin->slots[c].marked) { 
+                    if(lastToWin->slots[c].value == drawableNumbers[i]) {
+                        printf("o  ");
+                    } else if(lastToWin->slots[c].marked) { 
                         printf("x  ");
                     } else {
                         printf("%i ", lastToWin->slots[c].value);
@@ -206,7 +212,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 lastToWin->score = sum * drawableNumbers[i];
-                printf("Score of last to win: %i\n", lastToWin->score);
+                printf("\nScore of last to win: %i\n", lastToWin->score);
                 break;
             }
         }    
