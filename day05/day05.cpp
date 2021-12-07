@@ -17,6 +17,11 @@ get_pos_index(s32 x, s32 y) {
     return x + (y * BOARD_DIM);
 }
 
+static inline s32
+sign(s32 x) {
+    return (x > 0) - (x < 0);
+}
+
 static void
 mark_line(u16* board, Line line) {
     s32 minX = MIN(line.startX, line.endX);
@@ -34,11 +39,17 @@ mark_line(u16* board, Line line) {
         }
     // Else it's diagnal at 45
     } else {
-        while(minX <= maxX || minY <= maxY) {
-            u32 index = get_pos_index(minX, minY);
+        s32 xStep = -sign(line.startX - line.endX);
+        s32 yStep = -sign(line.startY - line.endY);
+        printf("(%i, %i) -> (%i, %i)\n", line.startX, line.startY, line.endX, line.endY);
+        printf("  xStep %i yStep %i\n", xStep, yStep);
+        s32 x = line.startX;
+        s32 y = line.startY;
+        while(x != line.endX || y != line.endY) {
+            u32 index = get_pos_index(x, y);
             board[index] += 1;
-            minX += 1;
-            minY += 1;
+            if(x != line.endX) x += xStep;
+            if(y != line.endY) y += yStep;
         }
     }
 }
