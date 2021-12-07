@@ -37,19 +37,19 @@ mark_line(u16* board, Line line) {
                 board[index] += 1;
             }
         }
-    // Else it's diagnal at 45
+    // Else it's diagonal at 45
     } else {
         s32 xStep = -sign(line.startX - line.endX);
         s32 yStep = -sign(line.startY - line.endY);
-        printf("(%i, %i) -> (%i, %i)\n", line.startX, line.startY, line.endX, line.endY);
-        printf("  xStep %i yStep %i\n", xStep, yStep);
+        //printf("(%i, %i) -> (%i, %i)\n", line.startX, line.startY, line.endX, line.endY);
+        //printf("  xStep %i yStep %i\n", xStep, yStep);
         s32 x = line.startX;
         s32 y = line.startY;
         while(x != line.endX || y != line.endY) {
             u32 index = get_pos_index(x, y);
             board[index] += 1;
-            if(x != line.endX) x += xStep;
-            if(y != line.endY) y += yStep;
+            x += xStep;
+            y += yStep;
         }
     }
 }
