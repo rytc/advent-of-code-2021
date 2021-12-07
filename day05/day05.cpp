@@ -24,6 +24,7 @@ mark_line(u16* board, Line line) {
     s32 minY = MIN(line.startY, line.endY);
     s32 maxY = MAX(line.startY, line.endY);
 
+    // If horizontal or vertical
     if(minX == maxX || minY == maxY) {
         for(s32 y = minY; y <= maxY; y++) {
             for(s32 x = minX; x <= maxX; x++) {
@@ -31,6 +32,7 @@ mark_line(u16* board, Line line) {
                 board[index] += 1;
             }
         }
+    // Else it's diagnal at 45
     } else {
         while(minX <= maxX || minY <= maxY) {
             u32 index = get_pos_index(minX, minY);
@@ -81,7 +83,6 @@ int main(int argc, char** argv) {
     u16* board = (u16*)calloc((BOARD_DIM*BOARD_DIM), sizeof(u16));
 
     // Part 1 - only strictly vertical and horizontal lines
-    // 8111
     // Part 2 - all lines
     for(u32 i = 0; i < lineCount; i++) {
         mark_line(board, lines[i]);
