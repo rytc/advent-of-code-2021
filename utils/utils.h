@@ -30,6 +30,11 @@ free_file(File file) {
     free(file.data);
 }
 
+static inline s32
+sign(s32 x) {
+    return (x > 0) - (x < 0);
+}
+
 static u32
 count_newlines(File file) {
     u32 result = 0;

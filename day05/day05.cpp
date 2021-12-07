@@ -17,11 +17,6 @@ get_pos_index(s32 x, s32 y) {
     return x + (y * BOARD_DIM);
 }
 
-static inline s32
-sign(s32 x) {
-    return (x > 0) - (x < 0);
-}
-
 static void
 mark_line(u16* board, Line line) {
     s32 minX = MIN(line.startX, line.endX);
