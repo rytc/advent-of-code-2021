@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <stdint.h>
-
+#include <cmath>
 typedef int8_t   s8;
 typedef uint8_t  u8;
 typedef int16_t  s16;
@@ -14,6 +14,9 @@ typedef int64_t  s64;
 typedef uint32_t u32;
 typedef uint64_t u64;
 typedef double   f64;
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 struct File {
     u64 length;
@@ -62,8 +65,13 @@ readline_s32(File *file) {
 
 static void
 readline_string_len(File *file, char* out, u32 len) {
+    if(file->data[file->cursor] == '\n') {
+        out[0] = '\n';
+        file->cursor += 1;
+        return;
+    }
     u32 lineEnd = find_next(*file, '\n');
-    memcpy(out, &file->data[file->cursor], len);
+    memcpy(out, &file->data[file->cursor], MIN(len, lineEnd));
     file->cursor = lineEnd + 1;
 }
 
