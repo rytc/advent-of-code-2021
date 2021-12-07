@@ -41,16 +41,18 @@ mark_line(u16* board, Line line) {
     } else {
         s32 xStep = -sign(line.startX - line.endX);
         s32 yStep = -sign(line.startY - line.endY);
-        //printf("(%i, %i) -> (%i, %i)\n", line.startX, line.startY, line.endX, line.endY);
-        //printf("  xStep %i yStep %i\n", xStep, yStep);
+        printf("(%i, %i) -> (%i, %i)\n", line.startX, line.startY, line.endX, line.endY);
+        printf("  xStep %i yStep %i\n  ", xStep, yStep);
         s32 x = line.startX;
         s32 y = line.startY;
-        while(x != line.endX || y != line.endY) {
+        while(x != line.endX+xStep || y != line.endY+yStep) {
             u32 index = get_pos_index(x, y);
             board[index] += 1;
+            printf("(%i %i) ", x, y);
             x += xStep;
             y += yStep;
         }
+        printf("\n");
     }
 }
 
