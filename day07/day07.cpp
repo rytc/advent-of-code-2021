@@ -58,10 +58,10 @@ int main(int argc, char** argv) {
     printf("Median %i\n", median);
     printf("Mean   %i\n", mean);
 
-    u32 totalFuelMean = 0;
-    u32 totalFuelMedian = 0;
-    u32 totalFuelMode = 0;
-    u32 totalFuelCenter = 0;
+    u64 totalFuelMean = 0;
+    u64 totalFuelMedian = 0;
+    u64 totalFuelMode = 0;
+    u64 totalFuelCenter = 0;
 
     for(u32 i = 0; i < crabCount; i++) {
         s16 pos = crabmarines[i];
@@ -71,8 +71,8 @@ int main(int argc, char** argv) {
         totalFuelCenter += MAX(pos, center) - MIN(pos, center);
     }
 
-    u32 totalFuelBruteForce = 999999;
-    u32 bruteForceBestPos = 0;
+    u64 totalFuelBruteForce = 999999;
+    u64 bruteForceBestPos = 0;
     for(u32 i = minPos; i < maxPos; i++) {
         u32 fuel = 0;
         for(u32 k = 0; k < crabCount; k++) {
@@ -88,16 +88,56 @@ int main(int argc, char** argv) {
 
     printf("--- PART 1 ---\n");
 
-    printf("Brute force best pos %i\n", bruteForceBestPos);
-
-    printf("totalFuelMean:       %i\n", totalFuelMean);
-    printf("totalFuelMedian:     %i\n", totalFuelMedian);
-    printf("totalFuelMode:       %i\n", totalFuelMode);
-    printf("totalFuelCenter:     %i\n", totalFuelCenter);
-    printf("totalFuelBruteForce: %i\n", totalFuelBruteForce);
+    printf("Brute force best pos %llu\n", bruteForceBestPos);
+    printf("totalFuelMean:       %llu\n", totalFuelMean);
+    printf("totalFuelMedian:     %llu\n", totalFuelMedian);
+    printf("totalFuelMode:       %llu\n", totalFuelMode);
+    printf("totalFuelCenter:     %llu\n", totalFuelCenter);
+    printf("totalFuelBruteForce: %llu\n", totalFuelBruteForce);
 
 
     printf("--- PART 2 ---\n");
+
+    totalFuelMean = 0;
+    totalFuelMedian = 0;
+    totalFuelMode = 0;
+    totalFuelCenter = 0;
+
+    for(u32 i = 0; i < crabCount; i++) {
+        s16 pos = crabmarines[i];
+        totalFuelMean += MAX(pos, mean) - MIN(pos, mean);
+        totalFuelMedian += MAX(pos, median) - MIN(pos, median);
+        totalFuelMode += MAX(pos, mode) - MIN(pos, mode);
+        totalFuelCenter += MAX(pos, center) - MIN(pos, center);
+    }
+    totalFuelMean = ceil(totalFuelMean / 2.0) * totalFuelMean;
+    totalFuelMedian = ceil(totalFuelMedian / 2) * totalFuelMedian;
+    totalFuelMode = ceil(totalFuelMode / 2) * totalFuelMode;
+    totalFuelCenter = ceil(totalFuelCenter / 2) * totalFuelCenter;
+
+    totalFuelBruteForce = 9999999999;
+    bruteForceBestPos = 0;
+    for(u32 i = minPos; i < maxPos; i++) {
+        u32 fuel = 0;
+        for(u32 k = 0; k < crabCount; k++) {
+            s16 pos = crabmarines[k];
+            u32 d = MAX(i, pos) - MIN(i, pos);
+            fuel += (d * (d+1)) / 2;
+        }
+
+
+        if(fuel < totalFuelBruteForce) {
+            totalFuelBruteForce = fuel;
+            bruteForceBestPos = i;
+        }
+    }
+    
+    printf("Brute force best pos %llu\n", bruteForceBestPos);
+    printf("totalFuelMean:       %llu\n", totalFuelMean);
+    printf("totalFuelMedian:     %llu\n", totalFuelMedian);
+    printf("totalFuelMode:       %llu\n", totalFuelMode);
+    printf("totalFuelCenter:     %llu\n", totalFuelCenter);
+    printf("totalFuelBruteForce: %llu\n", totalFuelBruteForce);
 
 
     free_file(input);
