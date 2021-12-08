@@ -10,6 +10,8 @@ cl %CommonCompilerFlags% day04/day04.cpp /Feday04/day04 /Fdday04/day04 /link %Co
 cl %CommonCompilerFlags% day05/day05.cpp /Feday05/day05 /Fdday05/day05 /link %CommonLinkerFlags%
 cl %CommonCompilerFlags% day06/day06.cpp /Feday06/day06 /Fdday06/day06 /link %CommonLinkerFlags%
 cl %CommonCompilerFlags% day07/day07.cpp /Feday07/day07 /Fdday07/day07 /link %CommonLinkerFlags%
+cl %CommonCompilerFlags% day08/day08.cpp /Feday08/day08 /Fdday08/day08 /link %CommonLinkerFlags%
+
 
 
 
