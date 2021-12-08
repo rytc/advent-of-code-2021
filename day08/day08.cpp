@@ -9,7 +9,7 @@ constexpr u8 ASCII_A = 97;
 
 
 struct Segments {
-    char e[7];
+    char e[8];
     u8 len;
 };
 
@@ -18,9 +18,162 @@ struct Signal {
     Segments output[4];
 };
 
+struct Mapping {
+    // ascii to segment
+    s8 mapping[7];
+    // segment to ascii
+    s8 reverseMapping[7];
+    u32 completion;
+};
+
+static Mapping
+make_mapping() {
+    Mapping result = {
+        {-1,-1,-1,-1,-1,-1,-1},
+        {-1,-1,-1,-1,-1,-1,-1}
+    };
+    result.completion = 0;
+    return result;
+}
+
+static void
+rotate_left(u8* array, u8 size) {
+    u8 temp = array[0];
+    for(u8 i = 0; i < size; i++)
+        array[i] = array[i + 1];
+    array[size-1] = temp;
+}
+
+static void
+rotate_left_by(u8* array, u8 size, u32 n) {
+    for(u32 i = 0; i < n; i++) {
+        rotate_left(array, size);
+    }
+}
+
+static Mapping
+make_mapping(Signal signal, u32 permutation) {
+    Mapping map = make_mapping();
+
+    //printf("! Permutation %u\n", permutation);
+
+    for(u32 i = 0; i < 10; i++) {
+        Segments pattern = signal.pattern[i];
+
+        if(pattern.len == LEN_1) {
+            u8 segs[2] = {2, 5};
+            if(permutation % 2) {
+                //printf("  Rotate 1\n");
+                rotate_left(segs, 2);
+            }
+
+            // For each character in the pattern
+            for(u32 k = 0; k < LEN_1; k++) {
+                u8 value = pattern.e[k] - ASCII_A;
+
+                // If that character has not yet been mapped 
+                if(map.mapping[value] == -1) {
+                    // Try to map it to one of the two available segments
+                    for(u32 s = 0; s < LEN_1; s++) {
+                        u8 seg = segs[s];
+                        // Check if that segment has already been mapped
+                        if(map.reverseMapping[seg] == -1) {
+                            map.mapping[value] = seg;
+                            map.reverseMapping[seg] = value;
+                            map.completion += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if(pattern.len == LEN_7) {
+            u8 segs[3] = {0, 2, 5};
+            if(permutation > 2) {
+                //printf("  Rotate 7 by %i\n", permutation-2); 
+                rotate_left_by(segs, 3, permutation - 2);
+            }
+
+            // For each character in the pattern
+            for(u32 k = 0; k < LEN_7; k++) {
+                u8 value = pattern.e[k] - ASCII_A;
+                // If that character has not yet been mapped 
+                if(map.mapping[value] == -1) {
+                    // Try to map it to one of the two available segments
+                    for(u32 s = 0; s < LEN_7; s++) {
+                        u8 seg = segs[s];
+                        // Check if that segment has already been mapped
+                        if(map.reverseMapping[seg] == -1) {
+                            map.mapping[value] = seg;
+                            map.reverseMapping[seg] = value;
+                            map.completion += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(pattern.len == LEN_4) {
+            u8 segs[4] = {1, 2, 3, 5};
+            if(permutation > 6) { 
+                //printf("  Rotate 4 by %i\n", permutation - 6);
+                rotate_left_by(segs,4, permutation - 6);
+            }
+
+            // For each character in the pattern
+            for(u32 k = 0; k < LEN_4; k++) {
+                u8 value = pattern.e[k] - ASCII_A;
+                // If that character has not yet been mapped 
+                if(map.mapping[value] == -1) {
+                    // Try to map it to one of the two available segments
+                    for(u32 s = 0; s < LEN_4; s++) {
+                        u8 seg = segs[s];
+                        // Check if that segment has already been mapped
+                        if(map.reverseMapping[seg] == -1) {
+                            map.mapping[value] = seg;
+                            map.reverseMapping[seg] = value;
+                            map.completion += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        
+
+        if(pattern.len == LEN_8) {
+            u8 segs[7] = {0,1,2,3,4,5,6};
+            if(permutation > 19) rotate_left_by(segs, 7, permutation - 19);
+            
+            // For each character in the pattern
+            for(u32 k = 0; k < LEN_8; k++) {
+                u8 value = pattern.e[k] - ASCII_A;
+                // If that character has not yet been mapped 
+                if(map.mapping[value] == -1) {
+                    // Try to map it to one of the two available segments
+                    for(u32 s = 0; s < LEN_8; s++) {
+                        u8 seg = segs[s];
+                        // Check if that segment has already been mapped
+                        if(map.reverseMapping[seg] == -1) {
+                            map.mapping[value] = seg;
+                            map.reverseMapping[seg] = value;
+                            map.completion += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return map;
+}
 
 static u32
-get_numeric(s8* mapping, Segments disp) {
+get_numeric(Mapping map, Segments disp) {
     if(disp.len == LEN_1) return 1;
     if(disp.len == LEN_4) return 4;
     if(disp.len == LEN_7) return 7;
@@ -29,7 +182,7 @@ get_numeric(s8* mapping, Segments disp) {
     u8 segments[7] = {};
     for(u32 i = 0; i < disp.len; i++) {
         u32 mapIndex = disp.e[i] - ASCII_A;
-        u32 segmentIndex = mapping[mapIndex];
+        u32 segmentIndex = map.mapping[mapIndex];
         segments[segmentIndex] = 1;
     }
 
@@ -53,7 +206,7 @@ get_numeric(s8* mapping, Segments disp) {
         return 6;
     }
 
-    printf("! ERROR: unknown numeric value %s\n", disp.e);
+    //printf("! ERROR: unknown numeric value %s\n", disp.e);
 
 #if 0 
     if(segments[0]) { printf("  a\n"); } else { printf("\n"); }
@@ -65,7 +218,7 @@ get_numeric(s8* mapping, Segments disp) {
     if(segments[6]) { printf("  g\n"); }
 #endif 
     
-    return 0;
+    return 0xCAFEBABE;
 }
 
 static void
@@ -94,6 +247,7 @@ int main(int argc, char** argv) {
             u8 len = space - input.cursor;
             signal->pattern[patternIndex].len = len;
             memcpy(signal->pattern[patternIndex].e, input.data + input.cursor, len);
+            signal->pattern[patternIndex].e[7] = '\0';
             input.cursor = space + 1;
 
         }
@@ -106,6 +260,8 @@ int main(int argc, char** argv) {
             u8 len = space - input.cursor;
             signal->output[outputIndex].len = len;
             memcpy(signal->output[outputIndex].e, input.data + input.cursor, len);
+            signal->output[outputIndex].e[7] = '\0';
+
             input.cursor = space + 1;
         }
     }
@@ -134,127 +290,42 @@ int main(int argc, char** argv) {
         Signal signal = signals[signalIndex];
         sort_pattern(&signal);
 
-        // ascii to segment
-        s8 mapping[7] = {-1,-1,-1,-1,-1,-1,-1};
-        // segment to ascii
-        s8 reverseMapping[7] = {-1,-1,-1,-1,-1,-1,-1};
+        b32 complete = 0;
+        u32 permutation = 0;
+        u32 values[4] = {};
+        printf("--- SIGNAL %i ---\n", signalIndex);
 
-        u8 mappingCompletion = 0;
+        do {
+            Mapping map = make_mapping(signal, permutation);
 
-        for(u32 i = 0; i < 10; i++) {
-            Segments pattern = signal.pattern[i];
-
-            if(pattern.len == LEN_1) {
-                u8 segs[2] = {2, 5};
-                
-                // For each character in the pattern
-                for(u32 k = 0; k < LEN_1; k++) {
-                    u8 value = pattern.e[k] - ASCII_A;
-
-                    // If that character has not yet been mapped 
-                    if(mapping[value] == -1) {
-
-                        // Try to map it to one of the two available segments
-                        for(u32 s = 0; s < LEN_1; s++) {
-                            u8 seg = segs[s];
-
-                            // Check if that segment has already been mapped
-                            if(reverseMapping[seg] == -1) {
-                                mapping[value] = seg;
-                                reverseMapping[seg] = value;
-                                mappingCompletion += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
+            if(map.completion != 7) {
+                printf("! ERROR: incomplete mapping (%i) at signal %i\n", map.completion, signalIndex);
             }
 
-            if(pattern.len == LEN_4) {
-                u8 segs[4] = {1, 2, 3, 5};
-                
-                // For each character in the pattern
-                for(u32 k = 0; k < LEN_4; k++) {
-                    u8 value = pattern.e[k] - ASCII_A;
+            for(u32 i = 0; i < 4; i++) {
+                u32 numeric = get_numeric(map, signal.output[i]);
+                if(numeric == 0xCAFEBABE) {
+                    permutation += 1;
+                    complete = 0;
 
-                    // If that character has not yet been mapped 
-                    if(mapping[value] == -1) {
-
-                        // Try to map it to one of the two available segments
-                        for(u32 s = 0; s < LEN_4; s++) {
-                            u8 seg = segs[s];
-
-                            // Check if that segment has already been mapped
-                            if(reverseMapping[seg] == -1) {
-                                mapping[value] = seg;
-                                reverseMapping[seg] = value;
-                                mappingCompletion += 1;
-                                break;
-                            }
-                        }
+                    if(permutation > 500) {
+                        printf("FAILED TO FIND PERMUTATION for signal %i\n", signalIndex);
+                        return 1;
                     }
+                    break;
+                } else {
+                    //printf("Found numeric for %s\n", signal.output[i].e);
+                    values[i] = numeric;
+                    complete += 1;
                 }
             }
+        } while(complete < 4);
 
-            if(pattern.len == LEN_7) {
-                u8 segs[3] = {0, 2, 5};
-                
-                // For each character in the pattern
-                for(u32 k = 0; k < LEN_7; k++) {
-                    u8 value = pattern.e[k] - ASCII_A;
+        u32 value = (values[0] * 1000) + (values[1] * 100) + (values[2] * 10) + (values[3]);
 
-                    // If that character has not yet been mapped 
-                    if(mapping[value] == -1) {
-                        // Try to map it to one of the two available segments
-                        for(u32 s = 0; s < LEN_7; s++) {
-                            u8 seg = segs[s];
-
-                            // Check if that segment has already been mapped
-                            if(reverseMapping[seg] == -1) {
-                                mapping[value] = seg;
-                                reverseMapping[seg] = value;
-                                mappingCompletion += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(pattern.len == LEN_8) {
-                u8 segs[7] = {0,1,2,3,4,5,6};
-                
-                // For each character in the pattern
-                for(u32 k = 0; k < LEN_8; k++) {
-                    u8 value = pattern.e[k] - ASCII_A;
-
-                    // If that character has not yet been mapped 
-                    if(mapping[value] == -1) {
-                        // Try to map it to one of the two available segments
-                        for(u32 s = 0; s < LEN_8; s++) {
-                            u8 seg = segs[s];
-
-                            // Check if that segment has already been mapped
-                            if(reverseMapping[seg] == -1) {
-                                mapping[value] = seg;
-                                reverseMapping[seg] = value;
-                                mappingCompletion += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if(mappingCompletion != 7) {
-            printf("! ERROR: incomplete mapping (%i) at signal %i\n", mappingCompletion, signalIndex);
-            continue;
-        }
-
-        for(u32 i = 0; i < 4; i++) {
-            outputTotal += get_numeric(&mapping[0], signal.output[i]);
-        }
+        printf("===== Value: %i\n", value);
+        outputTotal += value;
+        permutation = 0;
     }
 
     printf("Total of all outputs: %i\n", outputTotal);
