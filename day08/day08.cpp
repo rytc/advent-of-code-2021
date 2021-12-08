@@ -18,6 +18,187 @@ struct Signal {
     Segments output[4];
 };
 
+static void
+sort_pattern(Signal* signal) {
+    for(u32 i = 0; i < 10; i++) {
+        for(u32 j = 0; j < 10; j++) {
+            if(signal->pattern[j].len > signal->pattern[i].len) {
+                Segments s = signal->pattern[j];
+                signal->pattern[j] = signal->pattern[i];
+                signal->pattern[i] = s;
+            }
+        }
+    }
+}
+
+static b32
+find_in_str(char* str, char delim) {
+    char* p = str;
+    while(*p != '\0') {
+        if(*p == delim) return true;
+        p++;
+    }
+
+    return false;
+}
+
+int main(int argc, char** argv) {
+    File input = read_entire_file("input.txt");
+    
+    u32 entryCount = count_newlines(input);
+    Signal* signals = (Signal*)calloc(entryCount, sizeof(Signal));
+
+    for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
+        Signal* signal = &signals[signalIndex];
+        for(u32 patternIndex = 0; patternIndex < 10; patternIndex++) {
+            u32 space = find_next(input, ' ');
+            u8 len = space - input.cursor;
+            signal->pattern[patternIndex].len = len;
+            memcpy(signal->pattern[patternIndex].e, input.data + input.cursor, len);
+            signal->pattern[patternIndex].e[7] = '\0';
+            input.cursor = space + 1;
+
+        }
+
+        input.cursor += 2;
+
+        for(u32 outputIndex = 0; outputIndex < 4; outputIndex++) {
+            u32 space = find_next(input, ' ');
+            if(outputIndex == 3) space = find_next(input, '\n');
+            u8 len = space - input.cursor;
+            signal->output[outputIndex].len = len;
+            memcpy(signal->output[outputIndex].e, input.data + input.cursor, len);
+            signal->output[outputIndex].e[7] = '\0';
+
+            input.cursor = space + 1;
+        }
+    }
+
+    printf("---- PART 1 ----\n");
+
+    u32 count1478 = 0;
+    for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
+        for(u32 i = 0; i < 4; i++) {
+            u8 len = signals[signalIndex].output[i].len;
+            //printf("%i ", len);
+            if(len == LEN_1 || len == LEN_4 || len == LEN_7 || len == LEN_8) {
+                count1478 += 1;
+            }
+        }
+        //printf("\n");
+    }
+
+    printf("1,4,7,8 appear %i times\n", count1478);
+
+
+    printf("---- PART 2 ----\n");
+
+
+    u32 outputTotal = 0;
+    for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
+        Signal signal = signals[signalIndex];
+        sort_pattern(&signal);
+
+        u32 oneIndex, sevenIndex, fourIndex;
+        for(u32 i = 0; i < 10; i++) {
+            if(signal.pattern[i].len == 2) { 
+                oneIndex = i;
+            } else if(signal.pattern[i].len == 3) {
+                sevenIndex = i;
+            } else if(signal.pattern[i].len == 4) {
+                fourIndex = i;
+            }
+        }
+
+        u32 values[4] = {};
+        for(u32 outputIndex = 0; outputIndex < 4; outputIndex++) {
+            u32 len = signal.output[outputIndex].len;
+            char* str = signal.output[outputIndex].e;
+            if(len == 2) {
+                values[outputIndex] = 1;
+            } else if(len == 3) {
+                values[outputIndex] = 7;
+            } else if(len == 4) {
+                values[outputIndex] = 4;
+            } else if(len == 7) {
+                values[outputIndex] = 8;
+            } else{
+                if(len == 5) {
+                    // 2, 3, 5
+                    u32 matches = 0;
+                    
+                    // If this character has in commmon with 1, then it must be a 3
+                    if(find_in_str(str, signal.pattern[oneIndex].e[0]) &&
+                        find_in_str(str, signal.pattern[oneIndex].e[1])) {
+                            values[outputIndex] = 3;
+                            continue;
+                    }
+
+                    // 2, 5
+
+                    // How many matches against 4
+                    for(u32 i = 0; i < 4; i++) {
+                        if(find_in_str(str, signal.pattern[fourIndex].e[i])) matches++;
+                    }
+
+                    // 5 has three parts in common with 4
+                    if(matches >= 3) {
+                        values[outputIndex] = 5;
+                    } else { // Otherwise it's 5
+                        values[outputIndex] = 2;
+                    } 
+
+                } else if(len == 6) {
+                    // 0, 6, 9
+                    u32 matches = 0;
+
+                    // Check against 4
+                    for(u32 i = 0; i < 4; i++) {
+                        if(find_in_str(str, signal.pattern[fourIndex].e[i])) matches++;
+                    }
+
+                    // 4 shares all parts with 9
+                    if(matches == 4) {
+                        values[outputIndex] = 9;
+                        continue;
+                    }
+
+                    // 0, 6
+                    matches = 0;
+
+                    // check against 7
+                    for(u32 i = 0; i < 3; i++) {
+                        if(find_in_str(str, signal.pattern[sevenIndex].e[i])) matches++;
+                    }
+
+                    // 0 shares with 7, 6 does not
+                    if(matches >= 3) {
+                        values[outputIndex] = 0;
+                    } else {
+                        values[outputIndex] = 6;
+                    }
+                }
+            }
+        }
+
+        outputTotal += (values[0] * 1000) + (values[1] * 100) + (values[2] * 10) + (values[3]); 
+    }
+
+
+    printf("Total of all outputs: %i\n", outputTotal);
+
+
+    free(signals);
+    free_file(input);
+    return 0;
+}
+
+
+#if 0
+//
+// First attempt at part 2
+//
+
 struct Mapping {
     // ascii to segment
     s8 mapping[7];
@@ -146,7 +327,7 @@ make_mapping(Signal signal, u32 permutation) {
 
         if(pattern.len == LEN_8) {
             u8 segs[7] = {0,1,2,3,4,5,6};
-            if(permutation > 19) rotate_left_by(segs, 7, permutation - 19);
+            //if(permutation > 11) rotate_left_by(segs, 7, permutation - 11);
             
             // For each character in the pattern
             for(u32 k = 0; k < LEN_8; k++) {
@@ -221,70 +402,6 @@ get_numeric(Mapping map, Segments disp) {
     return 0xCAFEBABE;
 }
 
-static void
-sort_pattern(Signal* signal) {
-    for(u32 i = 0; i < 10; i++) {
-        for(u32 j = 0; j < 10; j++) {
-            if(signal->pattern[j].len > signal->pattern[i].len) {
-                Segments s = signal->pattern[j];
-                signal->pattern[j] = signal->pattern[i];
-                signal->pattern[i] = s;
-            }
-        }
-    }
-}
-
-int main(int argc, char** argv) {
-    File input = read_entire_file("input.txt");
-    
-    u32 entryCount = count_newlines(input);
-    Signal* signals = (Signal*)calloc(entryCount, sizeof(Signal));
-
-    for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
-        Signal* signal = &signals[signalIndex];
-        for(u32 patternIndex = 0; patternIndex < 10; patternIndex++) {
-            u32 space = find_next(input, ' ');
-            u8 len = space - input.cursor;
-            signal->pattern[patternIndex].len = len;
-            memcpy(signal->pattern[patternIndex].e, input.data + input.cursor, len);
-            signal->pattern[patternIndex].e[7] = '\0';
-            input.cursor = space + 1;
-
-        }
-
-        input.cursor += 2;
-
-        for(u32 outputIndex = 0; outputIndex < 4; outputIndex++) {
-            u32 space = find_next(input, ' ');
-            if(outputIndex == 3) space = find_next(input, '\n');
-            u8 len = space - input.cursor;
-            signal->output[outputIndex].len = len;
-            memcpy(signal->output[outputIndex].e, input.data + input.cursor, len);
-            signal->output[outputIndex].e[7] = '\0';
-
-            input.cursor = space + 1;
-        }
-    }
-
-    printf("---- PART 1 ----\n");
-
-    u32 count1478 = 0;
-    for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
-        for(u32 i = 0; i < 4; i++) {
-            u8 len = signals[signalIndex].output[i].len;
-            printf("%i ", len);
-            if(len == LEN_1 || len == LEN_4 || len == LEN_7 || len == LEN_8) {
-                count1478 += 1;
-            }
-        }
-        printf("\n");
-    }
-
-    printf("1,4,7,8 appear %i times\n", count1478);
-
-
-    printf("---- PART 2 ----\n");
-
     u32 outputTotal = 0;
     for(u32 signalIndex = 0; signalIndex < entryCount; signalIndex++) {
         Signal signal = signals[signalIndex];
@@ -308,7 +425,7 @@ int main(int argc, char** argv) {
                     permutation += 1;
                     complete = 0;
 
-                    if(permutation > 500) {
+                    if(permutation > 40) {
                         printf("FAILED TO FIND PERMUTATION for signal %i\n", signalIndex);
                         return 1;
                     }
@@ -327,11 +444,5 @@ int main(int argc, char** argv) {
         outputTotal += value;
         permutation = 0;
     }
+#endif
 
-    printf("Total of all outputs: %i\n", outputTotal);
-
-
-    free(signals);
-    free_file(input);
-    return 0;
-}
