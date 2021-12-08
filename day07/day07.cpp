@@ -105,15 +105,15 @@ int main(int argc, char** argv) {
 
     for(u32 i = 0; i < crabCount; i++) {
         s16 pos = crabmarines[i];
-        totalFuelMean += MAX(pos, mean) - MIN(pos, mean);
-        totalFuelMedian += MAX(pos, median) - MIN(pos, median);
-        totalFuelMode += MAX(pos, mode) - MIN(pos, mode);
-        totalFuelCenter += MAX(pos, center) - MIN(pos, center);
+        u32 d = MAX(pos, mean) - MIN(pos, mean);
+        totalFuelMean += (d * (d+1)) / 2;
+        d = MAX(pos, median) - MIN(pos, median);
+        totalFuelMedian += (d * (d+1)) / 2; 
+        d = MAX(pos, mode) - MIN(pos, mode);
+        totalFuelMode += (d * (d+1)) / 2;
+        d = MAX(pos, center) - MIN(pos, center);
+        totalFuelCenter += (d * (d+1)) / 2;
     }
-    totalFuelMean = ceil(totalFuelMean / 2.0) * totalFuelMean;
-    totalFuelMedian = ceil(totalFuelMedian / 2) * totalFuelMedian;
-    totalFuelMode = ceil(totalFuelMode / 2) * totalFuelMode;
-    totalFuelCenter = ceil(totalFuelCenter / 2) * totalFuelCenter;
 
     totalFuelBruteForce = 9999999999;
     bruteForceBestPos = 0;
