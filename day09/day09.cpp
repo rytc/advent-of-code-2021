@@ -3,122 +3,6 @@
 u32 rowCount;
 u32 colCount;
 
-// First naive attempt
-static u32
-get_basin_size(s8* heightmap, s8* checkedIndices, u32 x, u32 y) {
-    u32 size = 1;
-
-    #define CHECK(ax,ay) \
-        index = ax + (ay * colCount); \
-        if(heightmap[index] == 9) break; \
-        if(checkedIndices[index] > 0) continue; \
-        checkedIndices[index] = 1
-
-
-    u32 tmpX = x;
-    u32 tmpY = y;
-    u32 index = 0;
-
-    // check left
-    while(tmpX > 0) {
-        tmpX--;
-        CHECK(tmpX, tmpY);
-        size++;
-
-        while(tmpY > 0) {
-            tmpY--;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpY = y;
-        while(tmpY < rowCount) {
-            tmpY++;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpY = y;
-    }
-
-    tmpX = x;
-    tmpY = y;
-
-    // check right
-    while(tmpX < colCount) {
-        tmpX++;
-        CHECK(tmpX, tmpY);
-        size++;
-
-        while(tmpY > 0) {
-            tmpY--;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpY = y;
-        while(tmpY < rowCount) {
-            tmpY++;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpY = y;
-    }
-
-    tmpX = x;
-    tmpY = y;
-
-    // check up 
-    while(tmpY > 0) {
-        tmpY--;
-        CHECK(tmpX, tmpY);
-        size++;
-
-        while(tmpX > 0) {
-            tmpX--;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpX = x;
-        while(tmpX < colCount) {
-            tmpX++;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpX = x;
-    }
-
-    tmpX = x;
-    tmpY = y;
-
-    // check down
-    while(tmpY < rowCount) {
-        tmpY++;
-        CHECK(tmpX, tmpY);
-        size++;
-
-        while(tmpX > 0) {
-            tmpX--;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpX = x;
-        while(tmpX < colCount) {
-            tmpX++;
-            CHECK(tmpX, tmpY);
-            size++;
-        }
-
-        tmpX = x;
-    }
-
-    return size;
-}
-
 static u32 
 floodfill(s8* heightmap, s8* checkedIndices, s32 x, s32 y) {
     if(x < 0 || x >= colCount)
@@ -273,3 +157,121 @@ int main(int argc, char** argv) {
     free_file(input);
     return 0;
 }
+
+#if 0
+// First naive attempt at part 2 lol
+static u32
+get_basin_size(s8* heightmap, s8* checkedIndices, u32 x, u32 y) {
+    u32 size = 1;
+
+    #define CHECK(ax,ay) \
+        index = ax + (ay * colCount); \
+        if(heightmap[index] == 9) break; \
+        if(checkedIndices[index] > 0) continue; \
+        checkedIndices[index] = 1
+
+
+    u32 tmpX = x;
+    u32 tmpY = y;
+    u32 index = 0;
+
+    // check left
+    while(tmpX > 0) {
+        tmpX--;
+        CHECK(tmpX, tmpY);
+        size++;
+
+        while(tmpY > 0) {
+            tmpY--;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpY = y;
+        while(tmpY < rowCount) {
+            tmpY++;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpY = y;
+    }
+
+    tmpX = x;
+    tmpY = y;
+
+    // check right
+    while(tmpX < colCount) {
+        tmpX++;
+        CHECK(tmpX, tmpY);
+        size++;
+
+        while(tmpY > 0) {
+            tmpY--;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpY = y;
+        while(tmpY < rowCount) {
+            tmpY++;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpY = y;
+    }
+
+    tmpX = x;
+    tmpY = y;
+
+    // check up 
+    while(tmpY > 0) {
+        tmpY--;
+        CHECK(tmpX, tmpY);
+        size++;
+
+        while(tmpX > 0) {
+            tmpX--;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpX = x;
+        while(tmpX < colCount) {
+            tmpX++;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpX = x;
+    }
+
+    tmpX = x;
+    tmpY = y;
+
+    // check down
+    while(tmpY < rowCount) {
+        tmpY++;
+        CHECK(tmpX, tmpY);
+        size++;
+
+        while(tmpX > 0) {
+            tmpX--;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpX = x;
+        while(tmpX < colCount) {
+            tmpX++;
+            CHECK(tmpX, tmpY);
+            size++;
+        }
+
+        tmpX = x;
+    }
+
+    return size;
+}
+#endif
