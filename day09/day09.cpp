@@ -242,29 +242,18 @@ int main(int argc, char** argv) {
             u32 basinSize = get_basin_size2(heightmap, checkedIndices, x, y);
             if(basinSize == 0) continue;
 
-
-
-            //printf("Basin size: %i\n", basinSize);
-            for(u32 i = 0; i < 3; i++) {
-                if(largestBasins[i] < basinSize) {
-                    // See if we should keep this size, because it's bigger than the rest
-                    for(u32 j = 0; j < 3; j++) {
-                        if(largestBasins[i] > largestBasins[j]) {
-                            largestBasins[j] = largestBasins[i];
-                            break;
-                        }
-                    }
-                    largestBasins[i] = basinSize;
-                    break;
-                }
+            if(basinSize > largestBasins[0]) {
+                largestBasins[2] = largestBasins[1];
+                largestBasins[1] = largestBasins[0];
+                largestBasins[0] = basinSize;
             }
         }
     }
 
-#if 1 
+#if 0 
     for(u32 my = 0; my < rowCount; my++) {
         for(u32 mx = 0; mx < colCount; mx++) {
-            u32 mindex = mx + (my*(colCount));
+            u32 mindex = mx + (my*colCount);
             if(checkedIndices[mindex] == 0) {
                 printf("%i", heightmap[mindex]);
             } else  {
