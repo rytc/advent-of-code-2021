@@ -2,7 +2,6 @@
 
 struct Node {
     u8 code; 
-    Node* child;
     Node* parent;
     u8 col;
 };
@@ -38,9 +37,6 @@ get_first_error_score(char* line) {
             newNode->parent = lastNode;
             newNode->col = counter;
             nodeCount++;
-            if(lastNode) {
-                lastNode->child = newNode;
-            }
 
             lastNode = newNode;
         } else if(code == '}' || code == ']' || code == '>' || code == ')') {
