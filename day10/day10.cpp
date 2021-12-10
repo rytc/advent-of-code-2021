@@ -68,18 +68,94 @@ get_first_error_score(char* line) {
             printf(" %c", nodePool[i].code);
         }
         printf("\n");
+    } else {
+        printf("!! Complete line!\n");
     }
 
     free(nodePool);
     return firstIllegalScore;
 }
 
+static u64 
+autocomplete(char* line) {
+    char* c = line;
 
+    Node* nodePool = (Node*)malloc(128 * sizeof(Node));
+    Node* lastNode = nullptr;
+    u32 nodeCount = 0;
+
+    u64 autocompleteScore = 0;
+    u32 counter = 0;
+    while(*c != '\n') {
+        char code = *c;
+        if(code == '{' || code == '[' || code == '<' || code == '(') {
+            Node* newNode = &nodePool[nodeCount];
+            newNode->code = code;
+            newNode->parent = lastNode;
+            newNode->col = counter;
+            nodeCount++;
+
+            lastNode = newNode;
+        } else if(code == '}' || code == ']' || code == '>' || code == ')') {
+            if(get_code(lastNode->code) != get_code(code)) {
+                printf("Unexpected corrupted line!\n");
+            } 
+
+            lastNode = lastNode->parent;
+            nodeCount--;
+        }
+
+        counter++;
+        c++;
+    }
+
+    assert(nodeCount < 16);
+
+    if(nodeCount != 0) {
+        char closingList[16] = {};
+        for(u32 i = 0; i < nodeCount; i++) {
+            closingList[i] = closings[get_code(nodePool[i].code)];
+        }
+
+        for(u32 i = nodeCount - 1; i > 0; i--) {
+            u32 codeScore = 0;
+            if(closingList[i] == ')') codeScore = 1;
+            if(closingList[i] == ']') codeScore = 2;
+            if(closingList[i] == '}') codeScore = 3;
+            if(closingList[i] == '>') codeScore = 4;
+            autocompleteScore = (autocompleteScore * 5) + codeScore;
+        }
+        
+    } else {
+        printf("!! Complete line!\n");
+    }
+
+    free(nodePool);
+    return autocompleteScore;
+}
+
+//
+// Don't mind my lovely o(n^n) sort :|
+//
+static void
+sort_scores(u64* scores, u32 count) {
+    for(u32 i = 0; i < count; i++) {
+        for(u32 j = 0; j < count; j++) {
+            if(scores[j] > scores[i]) {
+                u64 s = scores[j];
+                scores[j] = scores[i];
+                scores[i] = s;
+            }
+        }
+    }
+}
 
 int main(int argc, char** argv) {
     File input = read_entire_file("input.txt");
 
     u32 lineCount = count_newlines(input);
+    char* incompleteLinesOnly[100] = {};
+    u32 incompleteLineCount = 0;
 
     u32 totalErrorScore = 0;
     for(u32 i = 0; i < lineCount; i++) {
@@ -89,8 +165,12 @@ int main(int argc, char** argv) {
         memcpy(line, input.data + input.cursor, len + 1);
         u32 errorScore = get_first_error_score(line);
 
+        // Seems like every single line in the input data is incomplete, so we just 
+        // assume it's incomplete, and if there is no error score then it's not corrupted.
         if(errorScore == 0) { 
             printf("   Line %i Length %i\n", i, len);
+            incompleteLinesOnly[incompleteLineCount] = (char*)(input.data + input.cursor);
+            incompleteLineCount++;
         } else {
             printf("<< Error on line %i with len %i\n\n", i, len);
         }
@@ -98,7 +178,29 @@ int main(int argc, char** argv) {
         input.cursor = end + 1;
     }
 
-    printf("Total error score: %i\n", totalErrorScore);
+    printf("------- PART 2 -------\n");
+    printf("Incomplete lines only: %i\n", incompleteLineCount);
+    u64 scoreList[100] = {};
+    
+    for(u32 i = 0; i < incompleteLineCount; i++) {
+        char* line = incompleteLinesOnly[i];
+        u32 end = find_next(line, '\n');
+        scoreList[i] = autocomplete(line);
+    }
+
+    sort_scores(scoreList, incompleteLineCount);
+
+    for(u32 i = 0; i < incompleteLineCount; i++) {
+        printf("%i: %llu ", i+1, scoreList[i]);
+        if(i == ((incompleteLineCount-1) / 2) + 1) {
+            printf(" !!! middle score\n");
+        } else {
+            printf("\n");
+        }
+    }
+
+    printf("-----------\n");
+    printf("Part 1: Total error score: %i\n", totalErrorScore);
 
     free_file(input);
     return 0;

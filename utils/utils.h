@@ -58,6 +58,21 @@ find_next(File file, char c) {
     return tempCursor;
 }
 
+static u32
+find_next(char* string, char c) {
+    char* s = string;
+    u32 counter = 0;
+    while(*s != '\0') {
+        if(*s == c) {
+            return counter; 
+        }
+        s++;
+        counter++;
+    }
+
+    return counter;
+}
+
 static s32
 readline_s32(File *file) {
     u32 lineEnd = find_next(*file, '\n');

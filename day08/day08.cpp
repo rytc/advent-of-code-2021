@@ -18,6 +18,9 @@ struct Signal {
     Segments output[4];
 };
 
+//
+// Don't mind my lovely o(n^n) sort :|
+//
 static void
 sort_pattern(Signal* signal) {
     for(u32 i = 0; i < 10; i++) {
@@ -30,6 +33,7 @@ sort_pattern(Signal* signal) {
         }
     }
 }
+
 
 static b32
 find_in_str(char* str, char delim) {
