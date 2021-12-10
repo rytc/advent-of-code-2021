@@ -84,7 +84,6 @@ autocomplete(char* line) {
     Node* lastNode = nullptr;
     u32 nodeCount = 0;
 
-    u64 autocompleteScore = 0;
     u32 counter = 0;
     while(*c != '\n') {
         char code = *c;
@@ -110,26 +109,26 @@ autocomplete(char* line) {
     }
 
     assert(nodeCount < 16);
+    assert(nodeCount > 0);
 
-    if(nodeCount != 0) {
-        char closingList[16] = {};
-        for(u32 i = 0; i < nodeCount; i++) {
-            closingList[i] = closings[get_code(nodePool[i].code)];
-        }
 
-        for(u32 i = nodeCount - 1; i > 0; i--) {
-            u32 codeScore = 0;
-            if(closingList[i] == ')') codeScore = 1;
-            if(closingList[i] == ']') codeScore = 2;
-            if(closingList[i] == '}') codeScore = 3;
-            if(closingList[i] == '>') codeScore = 4;
-            autocompleteScore = (autocompleteScore * 5) + codeScore;
-        }
-        
-    } else {
-        printf("!! Complete line!\n");
+    u64 autocompleteScore = 0;
+    char closingList[16] = {};
+
+    for(u32 i = 0; i < nodeCount; i++) {
+        closingList[i] = closings[get_code(nodePool[i].code)];
     }
 
+    for(s32 i = nodeCount-1; i >= 0; i--) {
+    //for(u32 i = 0; i < nodeCount; i++) {
+        u32 codeScore = 0;
+        if(closingList[i] == ')') codeScore = 1;
+        if(closingList[i] == ']') codeScore = 2;
+        if(closingList[i] == '}') codeScore = 3;
+        if(closingList[i] == '>') codeScore = 4;
+        autocompleteScore = (autocompleteScore * 5) + codeScore;
+    }
+        
     free(nodePool);
     return autocompleteScore;
 }
@@ -189,11 +188,13 @@ int main(int argc, char** argv) {
     }
 
     sort_scores(scoreList, incompleteLineCount);
+    u64 middleScore = 0;
 
     for(u32 i = 0; i < incompleteLineCount; i++) {
         printf("%i: %llu ", i+1, scoreList[i]);
-        if(i == ((incompleteLineCount-1) / 2) + 1) {
+        if(i == ((incompleteLineCount-1) / 2)) {
             printf(" !!! middle score\n");
+            middleScore = scoreList[i];
         } else {
             printf("\n");
         }
@@ -201,6 +202,7 @@ int main(int argc, char** argv) {
 
     printf("-----------\n");
     printf("Part 1: Total error score: %i\n", totalErrorScore);
+    printf("Part 2: Middle score: %llu\n", middleScore);
 
     free_file(input);
     return 0;
