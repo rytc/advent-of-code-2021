@@ -42,7 +42,7 @@ get_first_error_score(char* line) {
 
             lastNode = newNode;
         } else if(code == '}' || code == ']' || code == '>' || code == ')') {
-            if(get_code(lastNode->code) != get_code(code)) {
+            if(get_code(lastNode->code) != get_code(code) && firstIllegalScore == 0) {
                 printf(">> at %i - expected %c got %c. Opening at %i. ", counter, closings[get_code(lastNode->code)], code, lastNode->col);
                 switch(code) {
                     case '}': firstIllegalScore = 1197;  break;
@@ -52,7 +52,6 @@ get_first_error_score(char* line) {
                 }    
                 printf("- Score: %i\n", firstIllegalScore);
                 printf("  %s", line);
-                break;
             } 
 
             lastNode = lastNode->parent;
@@ -63,6 +62,13 @@ get_first_error_score(char* line) {
         c++;
     }
 
+    if(nodeCount != 0) {
+        printf(">> Incomplete line, %i nodes remain\n", nodeCount);
+        for(u32 i = 0; i < nodeCount; i++) {
+            printf(" %c", nodePool[i].code);
+        }
+        printf("\n");
+    }
 
     free(nodePool);
     return firstIllegalScore;
@@ -84,9 +90,9 @@ int main(int argc, char** argv) {
         u32 errorScore = get_first_error_score(line);
 
         if(errorScore == 0) { 
-            printf("No error found on line %i! With length %i\n", i, len);
+            printf("   Line %i Length %i\n", i, len);
         } else {
-            printf("<< Error on line %i with len %i\n", i, len);
+            printf("<< Error on line %i with len %i\n\n", i, len);
         }
         totalErrorScore += errorScore;
         input.cursor = end + 1;
