@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         if(step < 100) flashCount += flashesThisStep;
 
         if(flashesThisStep >= 100) {
-            allFlashStep = step;
+            allFlashStep = step + 1; // First step is step 1, not 0.
             break;
         }
 
