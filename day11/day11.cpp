@@ -58,18 +58,21 @@ int main(int argc, char** argv) {
     u32 allFlashStep = 0;
 
     while(true) {
-        printf("---------- Step %i\n", step);
-        printf("-- initial\n");
-        print_octopi(octopi);
+        //printf("---------- Step %i\n", step);
+        //printf("-- initial\n");
+        //print_octopi(octopi);
 
+        // 1. Increment
         for(u32 octoIndex = 0; octoIndex < OCTOPUS_COUNT; octoIndex++) {
             octopi[octoIndex] += 1;
         }
 
         printf("-- increment\n");
-        print_octopi(octopi);
+        //print_octopi(octopi);
+
 
         u32 tmpFlashCount = 0;
+        // 2. Flash
         do {
             tmpFlashCount = 0;
             for(u32 octoIndex = 0; octoIndex < OCTOPUS_COUNT; octoIndex++) {
@@ -81,10 +84,11 @@ int main(int argc, char** argv) {
         } while(tmpFlashCount > 0);
         
 
-        printf("-- flash\n");
-        print_octopi(octopi);
+        //printf("-- flash\n");
+        //print_octopi(octopi);
 
         u32 flashesThisStep = 0;
+        // 3. Reset
         for(u32 octoIndex = 0; octoIndex < OCTOPUS_COUNT; octoIndex++) {
             if(octopi[octoIndex] < 0) { 
                 flashesThisStep++;
@@ -98,8 +102,8 @@ int main(int argc, char** argv) {
             break;
         }
 
-        printf("-- reset\n");
-        print_octopi(octopi);
+        //printf("-- reset\n");
+        //print_octopi(octopi);
 
         step++;
     }
