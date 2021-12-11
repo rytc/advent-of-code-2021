@@ -14,12 +14,13 @@ print_octopi(s8* octopi) {
             printf("  %i  ", octopi[i]);
         }
     }
+    printf("\n");
     //getchar();
 }
 
 static u32
 flash(s8* octopi, u32 index) {
-    u32 result = 0;
+    u32 result = 1;
     s8 x = index - ((index / 10) * 10);
     s8 y = index / 10;
 
@@ -29,8 +30,7 @@ flash(s8* octopi, u32 index) {
         for(s32 ax = x - 1; ax <= x+1; ax++) {
             if(ax < 0 || ay < 0 || ax > 9 || ay > 9 || (ax == x && ay == y)) continue;
             u32 index = ax + (ay*10);
-            if(octopi[index] == 9) result++;
-            octopi[index] = -120;
+            octopi[index] += 1;
         }
     }
 
@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
             tmpFlashCount = 0;
             for(u32 octoIndex = 0; octoIndex < OCTOPUS_COUNT; octoIndex++) {
                 if(octopi[octoIndex] > 9) {
+                    octopi[octoIndex] = -127;
                     tmpFlashCount = flash(octopi, octoIndex);
-                    octopi[octoIndex] = -120;
                 }
             }
         } while(tmpFlashCount > 0);
