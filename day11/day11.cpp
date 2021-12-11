@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
             octopi[octoIndex] += 1;
         }
 
-        printf("-- increment\n");
+        //printf("-- increment\n");
         //print_octopi(octopi);
 
 
