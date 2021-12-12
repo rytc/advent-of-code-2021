@@ -1,6 +1,6 @@
 #include "../utils/utils.h"
 
-constexpr u32 MAX_CAVE_COUNT = 24;
+constexpr u32 MAX_CAVE_COUNT = 32;
 constexpr u32 MAX_CONNECTIONS = 4;
 
 struct Cave {
@@ -31,16 +31,16 @@ p1_descend(Cave* cave, u32 *smallVisited) {
         Cave* next = cave->next[i];
         if(next) {
             if(next->isEnd) {
-                path[pathCount] = next->id;
-                pathCount++;
-                for(u32 p = 0; p < pathCount; p++) printf("%c, ", path[p]);
-                printf("end");
-                pathCount--;
+                { // Just printing out the whole path
+                    path[pathCount] = next->id;
+                    pathCount++;
+                    for(u32 p = 0; p < pathCount; p++) printf("%c, ", path[p]);
+                    pathCount--;
+                    printf("end\n");
+                }
+
                 if((*smallVisited) > 0) {
                     paths += 1;
-                    printf(" +1\n");
-                } else {
-                    printf("\n");
                 }
             } else { 
                 if(next->isSmall && next->visitCount == 0) {
@@ -75,7 +75,6 @@ add_cave(char id, Cave* caveList, u32* caveCount) {
     newCave->id = id;
     newCave->isSmall = (id >= 97);
     (*caveCount)++;
-    //for(u32 i = 0; i < MAX_CONNECTIONS; i++) newCave->next[i] = nullptr;
 
     return newCave;
 }
@@ -142,7 +141,6 @@ int main(int argc, char** argv) {
         for(u32 i = 0; i < MAX_CONNECTIONS; i++) {
             if(first->next[i] != nullptr) continue;
             first->next[i] = second;
-            //if(second->isEnd) first->dist = 1;
             break;
         }
         
@@ -154,6 +152,7 @@ int main(int argc, char** argv) {
         }
     }
 
+
     printf("------\n");
 
     u32 p1PathCount = 0;
@@ -164,11 +163,14 @@ int main(int argc, char** argv) {
             printf("Start, ", cave->id);
             u32 sv = 0;
             p1PathCount += p1_descend(cave, &sv);
-            //for(u32 k = 0; k < caveCount; k++) caveList[k].visitCount = 0;
             printf("\n");
         }
     }
 
+    printf("------\n");
+
+
+    printf("There are %i caves\n", caveCount);
     printf("Part 1 path count: %i\n", p1PathCount);
 
 #if 0
