@@ -85,6 +85,7 @@ int main(int argc, char** argv) {
     Cave caveList[MAX_CAVE_COUNT] = {};
     u32 caveCount = 0;
 
+    // This loop is just parsing the input text
     while(input.cursor < input.length) {
         if(input.data[input.cursor] == '\n') {
             input.cursor++;
@@ -155,6 +156,9 @@ int main(int argc, char** argv) {
 
     printf("------\n");
 
+    // Traverse the caves starting from the begin points
+    // Adds up all the paths that eventually end and have visited atleast
+    // 1 small cave
     u32 p1PathCount = 0;
     for(u32 i = 0; i < caveCount; i++) {
         Cave *cave = &caveList[i];
@@ -169,10 +173,13 @@ int main(int argc, char** argv) {
 
     printf("------\n");
 
-
+    // Print the results
     printf("There are %i caves\n", caveCount);
     printf("Part 1 path count: %i\n", p1PathCount);
 
+
+    // Prints out the caves and their connections
+    // for debug
 #if 0
     printf("--- CAVE LIST ---\n");
 
