@@ -16,14 +16,13 @@ char path[100];
 u32 pathCount = 0;
 
 static u32
-p1_descend(Cave* cave, u32 *smallVisited) {
+p1_descend(Cave* cave) {
     u32 paths = 0;
     
     path[pathCount] = cave->id;
     pathCount++;
 
     if(cave->isSmall) {
-        (*smallVisited) += 1;
         cave->visitCount += 1;
     }
 
@@ -31,11 +30,11 @@ p1_descend(Cave* cave, u32 *smallVisited) {
         Cave* next = cave->next[i];
         if(next) {
             if(next->isSmall && next->visitCount == 0) {
-                paths += p1_descend(next, smallVisited);
+                paths += p1_descend(next);
             } else if(!next->isSmall) {
-                paths += p1_descend(next, smallVisited);
+                paths += p1_descend(next);
             } else {
-                printf("Skipped path %c (Visited %i times)\n", next->id, next->visitCount);
+                //printf("Skipped path %c (Visited %i times)\n", next->id, next->visited);
             }
         }
     }
@@ -55,13 +54,59 @@ p1_descend(Cave* cave, u32 *smallVisited) {
     pathCount--;
 
     if(cave->isSmall) {
-        (*smallVisited) -= 1;
         cave->visitCount--;
     }
 
     return paths;
 }
 
+static u32
+p2_descend(Cave* cave, u32 *smallVisitedTwice) {
+    u32 paths = 0;
+    
+    path[pathCount] = cave->id;
+    pathCount++;
+
+    if(cave->isSmall) {
+        cave->visitCount += 1;
+    }
+
+    for(u32 i = 0; i < MAX_CONNECTIONS; i++) {
+        Cave* next = cave->next[i];
+        if(next) {
+            if(*smallVisitedTwice == false && next->isSmall && next->visitCount == 1) {
+                (*smallVisitedTwice) += 1;
+                paths += p2_descend(next, smallVisitedTwice);
+            } else if(next->isSmall && next->visitCount == 0) {
+                paths += p2_descend(next, smallVisitedTwice);
+            } else if(!next->isSmall) {
+                paths += p2_descend(next, smallVisitedTwice);
+            } else {
+                //printf("Skipped path %c (Visited %i times)\n", next->id, next->visited);
+            }
+        }
+    }
+
+    if(cave->isEnd) { 
+        { // Just printing out the whole path
+            path[pathCount] = cave->id;
+            pathCount++;
+            for(u32 p = 0; p < pathCount; p++) printf("%c, ", path[p]);
+            pathCount--;
+            printf("end\n");
+        }
+
+        paths += 1;
+    }
+
+    pathCount--;
+
+    if(cave->isSmall) {
+        cave->visitCount--;
+    }
+
+    return paths;
+}
 
 static Cave* 
 add_cave(char id, Cave* caveList, u32* caveCount) {
@@ -164,18 +209,31 @@ int main(int argc, char** argv) {
 
         if(cave->isStart) {
             printf("Start, ", cave->id);
-            u32 sv = 0;
-            p1PathCount += p1_descend(cave, &sv);
+            p1PathCount += p1_descend(cave);
             printf("\n");
         }
     }
+
+    u32 p2PathCount = 0;
+    for(u32 i = 0; i < caveCount; i++) {
+        Cave *cave = &caveList[i];
+
+        if(cave->isStart) {
+            printf("Start, ", cave->id);
+            u32 sv = 0;
+            p2PathCount += p2_descend(cave, &sv);
+            printf("\n");
+        }
+    }
+
+
 
     printf("------\n");
 
     // Print the results
     printf("There are %i caves\n", caveCount);
     printf("Part 1 path count: %i\n", p1PathCount);
-
+    printf("Part 2 path count: %i\n", p2PathCount);
 
     // Prints out the caves and their connections
     // for debug
