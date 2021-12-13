@@ -69,22 +69,7 @@ p2_descend(Cave* cave, u32 *smallVisitedTwice) {
 
     if(cave->isSmall) {
         cave->visitCount += 1;
-    }
-
-    for(u32 i = 0; i < MAX_CONNECTIONS; i++) {
-        Cave* next = cave->next[i];
-        if(next) {
-            if(*smallVisitedTwice == false && next->isSmall && next->visitCount == 1) {
-                (*smallVisitedTwice) += 1;
-                paths += p2_descend(next, smallVisitedTwice);
-            } else if(next->isSmall && next->visitCount == 0) {
-                paths += p2_descend(next, smallVisitedTwice);
-            } else if(!next->isSmall) {
-                paths += p2_descend(next, smallVisitedTwice);
-            } else {
-                //printf("Skipped path %c (Visited %i times)\n", next->id, next->visited);
-            }
-        }
+        if(cave->visitCount > 1) (*smallVisitedTwice) += 1;
     }
 
     if(cave->isEnd) { 
@@ -97,14 +82,31 @@ p2_descend(Cave* cave, u32 *smallVisitedTwice) {
         }
 
         paths += 1;
+    } else {
+        for(u32 i = 0; i < MAX_CONNECTIONS; i++) {
+            Cave* next = cave->next[i];
+            if(next) {
+                if(*smallVisitedTwice == 0 && next->isSmall && next->visitCount == 1 && !next->isStart) {
+                    printf("Visiting %c second time\n", next->id);
+                    paths += p2_descend(next, smallVisitedTwice);
+                } else if(next->isSmall && next->visitCount == 0) {
+                    paths += p2_descend(next, smallVisitedTwice);
+                } else if(!next->isSmall) {
+                    paths += p2_descend(next, smallVisitedTwice);
+                } else {
+                    //printf("Skipped path %c (Visited %i times)\n", next->id, next->visited);
+                }
+
+            }
+        }
     }
 
     pathCount--;
 
     if(cave->isSmall) {
         cave->visitCount--;
+        if((*smallVisitedTwice) > 0) (*smallVisitedTwice) -= 1;
     }
-
     return paths;
 }
 
@@ -222,6 +224,8 @@ int main(int argc, char** argv) {
             printf("Start, ", cave->id);
             u32 sv = 0;
             p2PathCount += p2_descend(cave, &sv);
+            printf("======\n total so far: %i\n =====\n", p2PathCount);
+            getchar();
             printf("\n");
         }
     }
