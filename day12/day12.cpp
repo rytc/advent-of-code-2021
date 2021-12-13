@@ -1,7 +1,7 @@
 #include "../utils/utils.h"
 
 constexpr u32 MAX_CAVE_COUNT = 32;
-constexpr u32 MAX_CONNECTIONS = 4;
+constexpr u32 MAX_CONNECTIONS = 16;
 
 struct Cave {
     Cave* next[MAX_CONNECTIONS];
@@ -98,8 +98,8 @@ int main(int argc, char** argv) {
         Cave* first;
         Cave* second;
 
+        // Line marks start
         if(len > 4) {
-            // start
             input.cursor += len + 1;
             len = find_next(input, '\n') - input.cursor;
 
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
             input.cursor += len;
             continue;
         } else if(len > 2) {
-            // end could be defined in the first part
+            // Marks an ending (could be defined in the first part)
             input.cursor += len+1;
             len = find_next(input, '\n') - input.cursor;
             first = add_cave(input.data[input.cursor], caveList, &caveCount);
@@ -119,7 +119,6 @@ int main(int argc, char** argv) {
             continue;
         } else {
             first = add_cave(input.data[input.cursor], caveList, &caveCount);
-            //printf("Added cave %c\n", first->id);
         }
 
         input.cursor += len+1;
