@@ -30,28 +30,28 @@ p1_descend(Cave* cave, u32 *smallVisited) {
     for(u32 i = 0; i < MAX_CONNECTIONS; i++) {
         Cave* next = cave->next[i];
         if(next) {
-            if(next->isEnd) {
-                { // Just printing out the whole path
-                    path[pathCount] = next->id;
-                    pathCount++;
-                    for(u32 p = 0; p < pathCount; p++) printf("%c, ", path[p]);
-                    pathCount--;
-                    printf("end\n");
-                }
-
-                if((*smallVisited) > 0) {
-                    paths += 1;
-                }
-            } else { 
-                if(next->isSmall && next->visitCount == 0) {
-                    paths += p1_descend(next, smallVisited);
-                } else if(!next->isSmall) {
-                    paths += p1_descend(next, smallVisited);
-                }
-                
+            if(next->isSmall && next->visitCount == 0) {
+                paths += p1_descend(next, smallVisited);
+            } else if(!next->isSmall) {
+                paths += p1_descend(next, smallVisited);
+            } else {
+                printf("Skipped path %c (Visited %i times)\n", next->id, next->visitCount);
             }
         }
     }
+
+    if(cave->isEnd) { 
+        { // Just printing out the whole path
+            path[pathCount] = cave->id;
+            pathCount++;
+            for(u32 p = 0; p < pathCount; p++) printf("%c, ", path[p]);
+            pathCount--;
+            printf("end\n");
+        }
+
+        paths += 1;
+    }
+
     pathCount--;
 
     if(cave->isSmall) {
