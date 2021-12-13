@@ -1,4 +1,27 @@
 #include "../utils/utils.h"
+#include <cassert>
+
+u32 testWidth = 10;
+u32 testHeight = 7; 
+u8 testGrid[] = {
+    1, 0, 1, 1, 0, 1, 0, 0, 1, 0,
+    1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 1, 0, 1, 0, 1, 0, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static void
+print_test_grid() {
+    for(u32 y = 0; y < testHeight; y++) {
+        for(u32 x = 0; x < testWidth; x++) {
+            printf("%i ", testGrid[x + (y*testWidth)]);
+        }
+        printf("\n");
+    }
+}
 
 struct Coord {
     u16 x;
@@ -34,13 +57,16 @@ fold(u8* grid, u32 width, u32 height, Fold_Instruction fold) {
         }
     } else if(fold.axis == 'x') {
         for(u32 y = 0; y < height; y++) {
-            for(u32 x = 0; x < width-fold.offset; x++) {
+            for(u32 x = 0; x < fold.offset; x++) {
                 s32 tmpX = x + fold.offset;
                 u32 srcIndex = tmpX + (y * width);
                 tmpX = fold.offset - (x+1);
                 if(tmpX >= 0) {
                     u32 dstIndex = tmpX + (y * width);
-                    if(grid[dstIndex] > 0) overlapCount++; 
+                    assert(dstIndex != srcIndex);
+                    if(grid[srcIndex] > 0 && grid[dstIndex] > 0) {
+                        overlapCount++;
+                    }
                     grid[dstIndex] += grid[srcIndex];
                     grid[srcIndex] = 0;
                 }
@@ -52,6 +78,15 @@ fold(u8* grid, u32 width, u32 height, Fold_Instruction fold) {
 
 int main(int argc, char** argv) {
     File input = read_entire_file("input.txt");
+
+    // TEST
+    {
+        printf("---- Test data: fold along x = 5\n");
+        print_test_grid();
+        fold(testGrid, testWidth, testHeight, Fold_Instruction{'x', 5});
+        print_test_grid();
+        printf("-------\n");
+    }
 
 
     u32 maxX = 0;
@@ -92,7 +127,7 @@ int main(int argc, char** argv) {
             foldInstructions[foldInstCount] = {axis, (u16)atoi(num)};
             foldInstCount++;
 
-        } else if(line[0] != '\n'){
+        } else if(coordCount < 879){
             // Coordinates
             char xStr[5] = {};
             char yStr[5] = {};
@@ -112,13 +147,13 @@ int main(int argc, char** argv) {
             maxX = MAX(maxX, newCoord.x);
             maxY = MAX(maxY, newCoord.y);
             
-            //printf("%i, %i\n", newCoord.x, newCoord.y);
+            printf("%i,%i\n", newCoord.x, newCoord.y);
 
         }
         input.cursor = endl+1;
     }
 
-    maxX+=1;
+    //maxX+=1;
     maxY+=1;
     printf("Max X: %i Max Y: %i\n", maxX, maxY);
     printf("There are %i coordinates\n", coordCount);
@@ -128,7 +163,7 @@ int main(int argc, char** argv) {
     // Fill out the grid
     for(u32 i = 0; i < coordCount; i++) {
         Coord coord = coords[i];
-        u32 index = coord.x + (coord.y * (maxX-1));
+        u32 index = coord.x + (coord.y * maxX);
         grid[index] = 1;
         
     }
@@ -146,7 +181,7 @@ int main(int argc, char** argv) {
         memcpy(tmpGrid, grid, maxX*maxY*sizeof(u8));
         fold(tmpGrid, maxX, maxY, foldInstructions[0]);
         for(u32 y = 0; y < maxY; y++) {
-            for(u32 x = 0; x < maxX; x++) {
+            for(u32 x = 0; x < foldInstructions[0].offset; x++) {
                 if(tmpGrid[x + (y*maxX)] > 0) p1Dots++;
             }
         }
