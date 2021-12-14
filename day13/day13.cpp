@@ -42,6 +42,8 @@ print_grid(u8* grid, u32 width, u32 height) {
     }
 }
 
+u32 bleh = 0;
+u32 bleh2 = 0;
 static void 
 fold(u8* grid, u32 width, u32 height, Fold_Instruction fold) {
     u32 overlapCount = 0;
@@ -63,7 +65,6 @@ fold(u8* grid, u32 width, u32 height, Fold_Instruction fold) {
                 tmpX = fold.offset - (x+1);
                 if(tmpX >= 0) {
                     u32 dstIndex = tmpX + (y * width);
-                    assert(dstIndex != srcIndex);
                     if(grid[srcIndex] > 0 && grid[dstIndex] > 0) {
                         overlapCount++;
                     }
@@ -147,13 +148,13 @@ int main(int argc, char** argv) {
             maxX = MAX(maxX, newCoord.x);
             maxY = MAX(maxY, newCoord.y);
             
-            printf("%i,%i\n", newCoord.x, newCoord.y);
+            //printf("%i,%i\n", newCoord.x, newCoord.y);
 
         }
         input.cursor = endl+1;
     }
 
-    //maxX+=1;
+    maxX+=1;
     maxY+=1;
     printf("Max X: %i Max Y: %i\n", maxX, maxY);
     printf("There are %i coordinates\n", coordCount);
@@ -179,7 +180,28 @@ int main(int argc, char** argv) {
     {
         u8* tmpGrid = (u8*)calloc(maxX*maxY, sizeof(u8));
         memcpy(tmpGrid, grid, maxX*maxY*sizeof(u8));
+        u32 y = 92;
+        for(u32 i = 0; i < maxX; i++) {
+            if(i == foldInstructions[0].offset) printf("\n\n");
+            if(tmpGrid[i + (y*maxX)] == 0) {
+                printf(".", tmpGrid[i + (y*maxX)]);
+            } else {
+                printf("#");
+            }
+        }printf("\n");
+        
         fold(tmpGrid, maxX, maxY, foldInstructions[0]);
+
+        for(u32 i = 0; i < maxX; i++) {
+            if(i == foldInstructions[0].offset) printf("\n\n");
+            if(tmpGrid[i + (y*maxX)] == 0) {
+                printf(".", tmpGrid[i + (y*maxX)]);
+            } else {
+                printf("#");
+            }
+        }printf("\n");
+
+
         for(u32 y = 0; y < maxY; y++) {
             for(u32 x = 0; x < foldInstructions[0].offset; x++) {
                 if(tmpGrid[x + (y*maxX)] > 0) p1Dots++;
