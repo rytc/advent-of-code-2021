@@ -62,7 +62,7 @@ fold(u8* grid, u32 width, u32 height, Fold_Instruction fold) {
             for(u32 x = 0; x < fold.offset; x++) {
                 s32 tmpX = x + fold.offset;
                 u32 srcIndex = tmpX + (y * width);
-                tmpX = fold.offset - (x+1);
+                tmpX = fold.offset - x;
                 if(tmpX >= 0) {
                     u32 dstIndex = tmpX + (y * width);
                     if(grid[srcIndex] > 0 && grid[dstIndex] > 0) {
@@ -154,11 +154,11 @@ int main(int argc, char** argv) {
         input.cursor = endl+1;
     }
 
-    maxX+=1;
-    maxY+=1;
     printf("Max X: %i Max Y: %i\n", maxX, maxY);
     printf("There are %i coordinates\n", coordCount);
-
+    
+    maxX+=1;
+    maxY+=1;
     u8* grid = (u8*)calloc(maxX*maxY, sizeof(u8));
 
     // Fill out the grid
@@ -169,6 +169,8 @@ int main(int argc, char** argv) {
         
     }
 
+    // Count the initial dots to make sure there 
+    // aren't any overlaps in the initial data
     u32 initialDotCount = 0;
     for(u32 y = 0; y < maxY; y++) {
         for(u32 x = 0; x < maxX; x++) {
@@ -176,32 +178,38 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Part 1: count all the dots after the first fold
     u32 p1Dots = 0;
     {
         u8* tmpGrid = (u8*)calloc(maxX*maxY, sizeof(u8));
         memcpy(tmpGrid, grid, maxX*maxY*sizeof(u8));
-        u32 y = 92;
+
+        // DEBUG: print line 92 of the grid before the  fold
+        /*u32 y = 92;
         for(u32 i = 0; i < maxX; i++) {
-            if(i == foldInstructions[0].offset) printf("\n\n");
+            if(i == foldInstructions[0].offset) printf("\n"); // Newline at the fold
             if(tmpGrid[i + (y*maxX)] == 0) {
                 printf(".", tmpGrid[i + (y*maxX)]);
             } else {
                 printf("#");
             }
-        }printf("\n");
+        }printf("\n");*/
         
+        // Do the first fold
         fold(tmpGrid, maxX, maxY, foldInstructions[0]);
 
-        for(u32 i = 0; i < maxX; i++) {
-            if(i == foldInstructions[0].offset) printf("\n\n");
+        // DEBUG: print line 92 of the grid after the fold
+        /*for(u32 i = 0; i < maxX; i++) {
+            if(i == foldInstructions[0].offset) printf("\n"); // Newline at the fold
             if(tmpGrid[i + (y*maxX)] == 0) {
                 printf(".", tmpGrid[i + (y*maxX)]);
             } else {
                 printf("#");
             }
-        }printf("\n");
+        }printf("\n");*/
 
 
+        // Count the  dots
         for(u32 y = 0; y < maxY; y++) {
             for(u32 x = 0; x < foldInstructions[0].offset; x++) {
                 if(tmpGrid[x + (y*maxX)] > 0) p1Dots++;
@@ -209,6 +217,8 @@ int main(int argc, char** argv) {
         }
         free(tmpGrid);
     }
+
+
     printf("Initial dot count: %i\n", initialDotCount);
     printf("Part 1 dot count: %i\n", p1Dots);
 
