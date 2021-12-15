@@ -98,16 +98,18 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
                     u32 newPair = p2_hash(rule.match[0], rule.insert);
                     u32 newPair2 = p2_hash(rule.insert, rule.match[1]);
                     
-                    // Decrement the pair since we are inserting
-                    // a character in the middle, breaking the pair
-                    itr->second -= 1;
-
                     // Insert or increment the first pair
-                    maps[dst][newPair] += 1;
+                    maps[dst][newPair] += itr->second;
 
                     // Insert or increment the second pair
-                    maps[dst][newPair2] += 1;
+                    maps[dst][newPair2] += itr->second;
+                    
+                    // Decrement the pair since we are inserting
+                    // a character in the middle, breaking the pair
 
+                    maps[dst][p2_hash(first, second)] -= itr->second;
+                    itr->second = 0;
+                    
                     // If we matched a rule, then no other rules should match 
                     break;
                 }
