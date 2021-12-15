@@ -16,6 +16,8 @@ IF "%1"=="day10" cl %CommonCompilerFlags% day10/day10.cpp /Feday10/day10 /Fdday1
 IF "%1"=="day11" cl %CommonCompilerFlags% day11/day11.cpp /Feday11/day11 /Fdday11/day11 /link %CommonLinkerFlags%
 IF "%1"=="day12" cl %CommonCompilerFlags% day12/day12.cpp /Feday12/day12 /Fdday12/day12 /link %CommonLinkerFlags%
 IF "%1"=="day13" cl %CommonCompilerFlags% day13/day13.cpp /Feday13/day13 /Fdday13/day13 /link %CommonLinkerFlags%
+IF "%1"=="day14" cl %CommonCompilerFlags% day14/day14.cpp /Feday14/day14 /Fdday14/day14 /link %CommonLinkerFlags%
+
 
 
 
