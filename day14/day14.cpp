@@ -65,67 +65,74 @@ p2_hash(char a, char b) {
 static u64
 p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     u64 result = 0;
-
     std::unordered_map<u32, s64> maps[2];
 
+    // First, build out the initial set of pairs
     for(u32 i = 0; i < count-1; i++) {
-        maps[0][p2_hash(srcBuffer[i], srcBuffer[i+1])] = 1;
+        u32 tmpl = p2_hash(srcBuffer[i], srcBuffer[i+1]);
+        if(maps[0].find(tmpl) == maps[0].end()) {
+            maps[0].insert({tmpl, 1});
+        } else {
+            maps[0][tmpl] += 1;
+        }
     }
+
+    // Copy the first set of pairs into the second map
+    maps[1] = maps[0];
 
     u32 src = 0;
     u32 dst = 1;
+    // This should be 40 steps for part 2,
+    // however it is set to 10 for testing to get it to match part 1/p1_insertions
     for(u32 step = 0; step < 10; step++) {
         printf("Step %i\n", step+1);
-        Rule* lastMatch = nullptr;
 
+        // Loop through each pair in the source map
         for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
-            u8 second = itr->first / HASH_OFFSET;
-            u8 first = itr->first - (second * HASH_OFFSET);
+            u8 second = (u8)(itr->first / HASH_OFFSET);
+            u8 first = (u8)(itr->first - (second * HASH_OFFSET));
 
-            if(lastMatch) {
-                u32 newPair3 = p2_hash(lastMatch->match[1], first);
-                if(maps[dst].find(newPair3) == maps[dst].end()) {
-                    maps[dst].insert({newPair3, 1});
-                } else {
-                    maps[dst][newPair3] += 1;
-                }
-                lastMatch = nullptr;
-            }
-            
-            b32 ruleMatch = false;
             for(u32 ruleIndex = 0; ruleIndex < ruleCount; ruleIndex++) {
                 Rule rule = rules[ruleIndex];
+
+                // If the pair matches a rule
                 if(rule.match[0] == first && rule.match[1] == second) {
+                    // AC -> ABC
+                    // new pairs: AB BC
                     u32 newPair = p2_hash(rule.match[0], rule.insert);
                     u32 newPair2 = p2_hash(rule.insert, rule.match[1]);
+                    
+                    // Decrement the pair since we are inserting
+                    // a character in the middle, breaking the pair
                     itr->second -= 1;
 
+                    // Insert or increment the first pair
                     if(maps[dst].find(newPair) == maps[dst].end()) {
                         maps[dst].insert({newPair, 1});
                     } else {
                         maps[dst][newPair] += 1;
                     }
 
+                    // Insert or increment the second pair
                     if(maps[dst].find(newPair2) == maps[dst].end()) {
                         maps[dst].insert({newPair2, 1});
                     } else {
                         maps[dst][newPair2] += 1;
                     }
-                    
-                    lastMatch = &rules[ruleIndex];
 
-                    ruleMatch = true;
+                    // If we matched a rule, then no other rules should match 
                     break;
                 }
             }
-
-            if(!ruleMatch) {
-                maps[dst][p2_hash(first, second)] += 1;
-            }
         }
 
-
+        // Copy what was written into dst
+        // into src
         maps[src] = maps[dst];
+
+        // Flip the indices so we write into "src" and read from "dst"
+        // on the next iteration. This is because we shouldn't iterate over
+        // a container that we are adding to.
         u32 tmp = src;
         src = dst;
         dst = tmp;
@@ -141,7 +148,7 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
         u8 second = itr->first / HASH_OFFSET;
         u8 first = itr->first - (second * HASH_OFFSET);
 
-        printf("%c%c %lli\n", first,second,itr->second);
+        //printf("%c%c %lli\n", first,second,itr->second);
         totalElements += itr->second * 2;
         counts[first - ASCII_OFFSET] += itr->second;
         counts[second - ASCII_OFFSET] += itr->second;
