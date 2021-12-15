@@ -70,11 +70,7 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     // First, build out the initial set of pairs
     for(u32 i = 0; i < count-1; i++) {
         u32 tmpl = p2_hash(srcBuffer[i], srcBuffer[i+1]);
-        if(maps[0].find(tmpl) == maps[0].end()) {
-            maps[0].insert({tmpl, 1});
-        } else {
-            maps[0][tmpl] += 1;
-        }
+        maps[0][tmpl] += 1;
     }
 
     // Copy the first set of pairs into the second map
@@ -107,18 +103,10 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
                     itr->second -= 1;
 
                     // Insert or increment the first pair
-                    if(maps[dst].find(newPair) == maps[dst].end()) {
-                        maps[dst].insert({newPair, 1});
-                    } else {
-                        maps[dst][newPair] += 1;
-                    }
+                    maps[dst][newPair] += 1;
 
                     // Insert or increment the second pair
-                    if(maps[dst].find(newPair2) == maps[dst].end()) {
-                        maps[dst].insert({newPair2, 1});
-                    } else {
-                        maps[dst][newPair2] += 1;
-                    }
+                    maps[dst][newPair2] += 1;
 
                     // If we matched a rule, then no other rules should match 
                     break;
