@@ -70,11 +70,11 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     // First, build out the initial set of pairs
     for(u32 i = 0; i < count-1; i++) {
         u32 tmpl = p2_hash(srcBuffer[i], srcBuffer[i+1]);
-        maps[0][tmpl] += 1;
+        maps[0][tmpl] = 1;
     }
 
     // Copy the first set of pairs into the second map
-    maps[1] = maps[0];
+    //maps[1] = maps[0];
 
     u32 src = 0;
     u32 dst = 1;
