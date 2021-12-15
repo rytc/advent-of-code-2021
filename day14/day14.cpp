@@ -55,34 +55,40 @@ p1_insertion(u8* srcBuffer, u8* dstBuffer, u32 srcCount, Rule* rules, u32 ruleCo
     return writeCursor;
 }
 
+constexpr u32 HASH_OFFSET = 10000;
+
 static u32
 p2_hash(char a, char b) {
-    return (u32)a + ((u32)b*1000);
+    return (u32)a + ((u32)b*HASH_OFFSET);
 }
 
 static u64
 p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     u64 result = 0;
 
-    std::unordered_map<u32, s64> maps;
+    std::unordered_map<u32, s64> maps[2];
 
     for(u32 i = 0; i < count-1; i++) {
-        maps[p2_hash(srcBuffer[i], srcBuffer[i+1])] = 1;
+        maps[0][p2_hash(srcBuffer[i], srcBuffer[i+1])] = 1;
     }
 
-    u32 dst = 1;
     u32 src = 0;
+    u32 dst = 1;
     for(u32 step = 0; step < 10; step++) {
         printf("Step %i\n", step+1);
         Rule* lastMatch = nullptr;
 
-        for(auto itr = maps.begin(); itr != maps.end(); itr++) {
-            u8 second = itr->first / 1000;
-            u8 first = itr->first - (second * 1000);
+        for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
+            u8 second = itr->first / HASH_OFFSET;
+            u8 first = itr->first - (second * HASH_OFFSET);
 
             if(lastMatch) {
                 u32 newPair3 = p2_hash(lastMatch->match[1], first);
-                maps[newPair3] += 1;
+                if(maps[dst].find(newPair3) == maps[dst].end()) {
+                    maps[dst].insert({newPair3, 1});
+                } else {
+                    maps[dst][newPair3] += 1;
+                }
                 lastMatch = nullptr;
             }
             
@@ -92,9 +98,19 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
                 if(rule.match[0] == first && rule.match[1] == second) {
                     u32 newPair = p2_hash(rule.match[0], rule.insert);
                     u32 newPair2 = p2_hash(rule.insert, rule.match[1]);
-                    maps[p2_hash(first, second)] -= 1;
-                    maps[newPair] += 1;
-                    maps[newPair2] += 1;
+                    itr->second -= 1;
+
+                    if(maps[dst].find(newPair) == maps[dst].end()) {
+                        maps[dst].insert({newPair, 1});
+                    } else {
+                        maps[dst][newPair] += 1;
+                    }
+
+                    if(maps[dst].find(newPair2) == maps[dst].end()) {
+                        maps[dst].insert({newPair2, 1});
+                    } else {
+                        maps[dst][newPair2] += 1;
+                    }
                     
                     lastMatch = &rules[ruleIndex];
 
@@ -102,18 +118,31 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
                     break;
                 }
             }
+
+            if(!ruleMatch) {
+                maps[dst][p2_hash(first, second)] += 1;
+            }
         }
+
+
+        maps[src] = maps[dst];
+        u32 tmp = src;
+        src = dst;
+        dst = tmp;
     }
 
-    printf("Part 2 pair count: %llu\n", maps.size());
+    printf("Part 2 pair count: %llu\n", maps[src].size());
     u64 minElements = UINT64_MAX;
     u64 maxElements = 0;
 
     s64 counts[26] = {};
+    s64 totalElements = 0;
+    for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
+        u8 second = itr->first / HASH_OFFSET;
+        u8 first = itr->first - (second * HASH_OFFSET);
 
-    for(auto itr = maps.begin(); itr != maps.end(); itr++) {
-        u8 second = itr->first / 1000;
-        u8 first = itr->first - (second * 1000);
+        printf("%c%c %lli\n", first,second,itr->second);
+        totalElements += itr->second * 2;
         counts[first - ASCII_OFFSET] += itr->second;
         counts[second - ASCII_OFFSET] += itr->second;
     }
@@ -123,6 +152,7 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
         if(counts[i] > 0) minElements = MIN(minElements, counts[i]);
     }
 
+    printf("Part 2 element count: %lli\n", totalElements);
     printf("Part 2 Most common element count: %llu\n", maxElements);
     printf("Part 2 Least common element count: %llu\n", minElements);
 
