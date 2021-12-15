@@ -66,15 +66,16 @@ static u64
 p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     u64 result = 0;
     std::unordered_map<u32, s64> maps[2];
+    u32 src = 0;
+    u32 dst = 1;
 
     // First, build out the initial set of pairs
     for(u32 i = 0; i < count-1; i++) {
         u32 tmpl = p2_hash(srcBuffer[i], srcBuffer[i+1]);
-        maps[0][tmpl] = 1;
+        maps[src][tmpl] = 1;
     }
 
-    u32 src = 0;
-    u32 dst = 1;
+
     // This should be 40 steps for part 2,
     // however it is set to 10 for testing to get it to match part 1/p1_insertions
     for(u32 step = 0; step < 10; step++) {
@@ -90,44 +91,37 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
 
                 // If the pair matches a rule
                 if(rule.match[0] == first && rule.match[1] == second) {
+
                     // AC -> ABC
                     // new pairs: AB BC
                     u32 newPair = p2_hash(rule.match[0], rule.insert);
                     u32 newPair2 = p2_hash(rule.insert, rule.match[1]);
                     
                     // Insert or increment the first pair
-                    maps[dst][newPair] += itr->second;
+                    maps[dst][newPair] += MAX(itr->second, 1);
 
                     // Insert or increment the second pair
-                    maps[dst][newPair2] += itr->second;
+                    maps[dst][newPair2] += MAX(itr->second, 1);
                     
                     // Decrement the pair since we are inserting
                     // a character in the middle, breaking the pair
-
-                    maps[dst][p2_hash(first, second)] -= itr->second;
                     itr->second = 0;
                     
                     // If we matched a rule, then no other rules should match 
                     break;
-                }
-            }
-        }
+                } // Rules match
+            } // Rules loop
+        } // Pair loop
 
-        // Copy what was written into dst
+        // Move what was written into dst
         // into src
-        maps[src] = maps[dst];
+        maps[src] = std::move(maps[dst]);
 
-        // Flip the indices so we write into "src" and read from "dst"
-        // on the next iteration. This is because we shouldn't iterate over
-        // a container that we are adding to.
-        u32 tmp = src;
-        src = dst;
-        dst = tmp;
-    }
+    } // Step loop
 
     printf("Part 2 pair count: %llu\n", maps[src].size());
-    u64 minElements = UINT64_MAX;
-    u64 maxElements = 0;
+    s64 minElements = INT64_MAX;
+    s64 maxElements = 0;
 
     s64 counts[26] = {};
     s64 totalElements = 0;
@@ -147,8 +141,8 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     }
 
     printf("Part 2 element count: %lli\n", totalElements);
-    printf("Part 2 Most common element count: %llu\n", maxElements);
-    printf("Part 2 Least common element count: %llu\n", minElements);
+    printf("Part 2 Most common element count: %lli\n", maxElements);
+    printf("Part 2 Least common element count: %lli\n", minElements);
 
     return maxElements - minElements;
 }
@@ -180,6 +174,8 @@ int main(int argc, char** argv) {
         ruleCount++;
         //printf("%c%c | %c\n", newRule->match[0], newRule->match[1], newRule->insert);
     }
+
+    printf("Rule count: %i\n", ruleCount);
 
     // Part 1
     u32 p1MaxElement = 0;
