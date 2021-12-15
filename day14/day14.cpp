@@ -73,16 +73,13 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
         maps[0][tmpl] = 1;
     }
 
-    // Copy the first set of pairs into the second map
-    //maps[1] = maps[0];
-
     u32 src = 0;
     u32 dst = 1;
     // This should be 40 steps for part 2,
     // however it is set to 10 for testing to get it to match part 1/p1_insertions
     for(u32 step = 0; step < 10; step++) {
         printf("Step %i\n", step+1);
-
+        
         // Loop through each pair in the source map
         for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
             u8 second = (u8)(itr->first / HASH_OFFSET);
