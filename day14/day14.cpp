@@ -55,19 +55,21 @@ p1_insertion(u8* srcBuffer, u8* dstBuffer, u32 srcCount, Rule* rules, u32 ruleCo
     return writeCursor;
 }
 
-constexpr u32 HASH_OFFSET = 10000;
+constexpr u32 HASH_OFFSET = 1000;
 
 static u32
 p2_hash(char a, char b) {
     return (u32)a + ((u32)b*HASH_OFFSET);
 }
 
+// Part 2 attempt 1 with hashmap craziness
 static u64
 p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
     u64 result = 0;
     std::unordered_map<u32, s64> maps[2];
     u32 src = 0;
     u32 dst = 1;
+    s64 counts[26] = {};
 
     // First, build out the initial set of pairs
     for(u32 i = 0; i < count-1; i++) {
@@ -75,16 +77,33 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
         maps[src][tmpl] = 1;
     }
 
+    for(u32 i = 0; i < count; i++) {
+       counts[srcBuffer[i] - ASCII_OFFSET] += 1;
+    }
 
     // This should be 40 steps for part 2,
     // however it is set to 10 for testing to get it to match part 1/p1_insertions
     for(u32 step = 0; step < 10; step++) {
         printf("Step %i\n", step+1);
-        
+
+        #if 0
+        for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
+            u8 second = static_cast<u8>(itr->first / HASH_OFFSET);
+            u8 first = static_cast<u8>(itr->first - (second * HASH_OFFSET));
+            printf("%c%c %lli\n", first,second,itr->second);
+        }
+        #endif
+        for(u32 i = 0; i < 26; i++) {
+            printf("%c %lli\n", i + ASCII_OFFSET, counts[i]);
+        }
+
+        getchar();
+
         // Loop through each pair in the source map
         for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
-            u8 second = (u8)(itr->first / HASH_OFFSET);
-            u8 first = (u8)(itr->first - (second * HASH_OFFSET));
+            u8 second = static_cast<u8>(itr->first / HASH_OFFSET);
+            u8 first = static_cast<u8>(itr->first - (second * HASH_OFFSET));
+            if(itr->second <= 0) continue;
 
             for(u32 ruleIndex = 0; ruleIndex < ruleCount; ruleIndex++) {
                 Rule rule = rules[ruleIndex];
@@ -96,18 +115,33 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
                     // new pairs: AB BC
                     u32 newPair = p2_hash(rule.match[0], rule.insert);
                     u32 newPair2 = p2_hash(rule.insert, rule.match[1]);
-                    
-                    // Insert or increment the first pair
-                    maps[dst][newPair] += MAX(itr->second, 1);
 
+                    assert(itr->second > 0);
+
+                    // There are cases where a new pair
+                    // matches the iterator. For example
+                    // PB might have a rule to insert a B
+                    // new pairs would be PB BB. 
+                    // Since PB matches the iterator, save the count,
+                    // reset to 0 since it's a "new" pair, then add the count back
+                    // this prevents it from doubling
+                    s64 count = itr->second;
+
+                    // Only subtract if the dst already has the pair
+                    // and prevent it from going negative
+                    if(maps[dst].find(itr->first) != maps[dst].end()) {
+                        maps[dst][itr->first] -= MIN(maps[dst][itr->first], count);
+                    }
+
+                    // Insert or increment the first pair
+                    maps[dst][newPair] += count;
                     // Insert or increment the second pair
-                    maps[dst][newPair2] += MAX(itr->second, 1);
-                    
-                    // Decrement the pair since we are inserting
-                    // a character in the middle, breaking the pair
-                    itr->second = 0;
-                    
-                    // If we matched a rule, then no other rules should match 
+                    maps[dst][newPair2] += count;
+
+                    counts[rule.match[0] - ASCII_OFFSET] += count;
+                    counts[rule.match[1] - ASCII_OFFSET] += count;
+                    counts[rule.insert   - ASCII_OFFSET] += count;
+
                     break;
                 } // Rules match
             } // Rules loop
@@ -119,35 +153,26 @@ p2_insertion(u8* srcBuffer, u32 count, Rule* rules, u32 ruleCount) {
 
     } // Step loop
 
-    printf("Part 2 pair count: %llu\n", maps[src].size());
     s64 minElements = INT64_MAX;
     s64 maxElements = 0;
-
-    s64 counts[26] = {};
     s64 totalElements = 0;
-    for(auto itr = maps[src].begin(); itr != maps[src].end(); itr++) {
-        u8 second = itr->first / HASH_OFFSET;
-        u8 first = itr->first - (second * HASH_OFFSET);
-
-        //printf("%c%c %lli\n", first,second,itr->second);
-        totalElements += itr->second * 2;
-        counts[first - ASCII_OFFSET] += itr->second;
-        counts[second - ASCII_OFFSET] += itr->second;
-    }
 
     for(u32 i = 0; i < 26; i++) {
+        totalElements += counts[i];
         maxElements = MAX(maxElements, counts[i]);
         if(counts[i] > 0) minElements = MIN(minElements, counts[i]);
     }
 
+
+    printf("------------\n");
+
     printf("Part 2 element count: %lli\n", totalElements);
     printf("Part 2 Most common element count: %lli\n", maxElements);
     printf("Part 2 Least common element count: %lli\n", minElements);
+    printf("Part 2 result: %llu\n", maxElements - minElements);
 
     return maxElements - minElements;
 }
-
-
 
 int main(int argc, char** argv) {
     File input = read_entire_file("input.txt");
@@ -221,9 +246,9 @@ int main(int argc, char** argv) {
     printf("Part 1 Most common element count: %i\n", p1MaxElement);
     printf("Part 1 Least common element count: %i\n", p1MinElement);
     printf("Part 1 result: %i\n", p1MaxElement - p1MinElement);
-    printf("Part 2 result: %llu\n", p2Difference);
 
 
+    
     
     free(bufferA); bufferB = nullptr;
     free_file(input);
